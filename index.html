@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Playlist Musical</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .music-form {
+            margin-bottom: 20px;
+        }
+        .music-list {
+            list-style: none;
+            padding: 0;
+        }
+        .music-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .music-item button {
+            background-color: #ff4444;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Minha Playlist Musical</h1>
+    
+    <div class="music-form">
+        <input type="text" id="musicName" placeholder="Nome da música" required>
+        <input type="text" id="musicArtist" placeholder="Artista" required>
+        <button onclick="addMusic()">Adicionar Música</button>
+    </div>
+    
+    <ul id="musicList" class="music-list"></ul>
+
+    <script>
+        // Variável global para armazenar as músicas
+        let playlist = [];
+
+        // Função executada quando a página é carregada
+        document.addEventListener('DOMContentLoaded', function() {
+            // Carrega as músicas do localStorage quando a página é aberta
+            loadPlaylist();
+            // Exibe as músicas na tela
+            displayPlaylist();
+        });
+
+        /**
+         * Carrega a playlist do localStorage
+         * Se não existir dados no localStorage, inicia uma array vazia
+         */
+        function loadPlaylist() {
+            // localStorage só armazena strings, então precisamos converter de JSON
+            const storedPlaylist = localStorage.getItem('playlist');
+            
+            // Verifica se existe alguma playlist armazenada
+            if (storedPlaylist) {
+                // Converte de volta para array/objeto JavaScript
+                playlist = JSON.parse(storedPlaylist);
+            }
+        }
+
+        /**
+         * Salva a playlist atual no localStorage
+         */
+        function savePlaylist() {
+            // Converte a playlist para string JSON antes de salvar
+            localStorage.setItem('playlist', JSON.stringify(playlist));
+        }
+
+        /**
+         * Adiciona uma nova música à playlist
+         */
+        function addMusic() {
+            // Obtém os valores dos inputs
+            const nameInput = document.getElementById('musicName');
+            const artistInput = document.getElementById('musicArtist');
+            
+            const name = nameInput.value.trim();
+            const artist = artistInput.value.trim();
+
+            // Validação simples - verifica se os campos não estão vazios
+            if (name === '' || artist === '') {
+                alert('Por favor, preencha todos os campos!');
+                return;
+            }
+
+            // Cria um objeto representando a música
+            const music = {
+                id: Date.now(), // Usa o timestamp como ID único
+                name: name,
+                artist: artist
+            };
+
+            // Adiciona a música à playlist
+            playlist.push(music);
+            
+            // Salva a playlist atualizada no localStorage
+            savePlaylist();
+            
+            // Atualiza a exibição da playlist
+            displayPlaylist();
+
+            // Limpa os campos do formulário
+            nameInput.value = '';
+            artistInput.value = '';
+        }
+
+        /**
+         * Remove uma música da playlist pelo seu ID
+         * @param {number} id - O ID da música a ser removida
+         */
+        function removeMusic(id) {
+            // Filtra a playlist, mantendo apenas as músicas com IDs diferentes do informado
+            playlist = playlist.filter(music => music.id !== id);
+            
+            // Salva a playlist atualizada no localStorage
+            savePlaylist();
+            
+            // Atualiza a exibição da playlist
+            displayPlaylist();
+        }
+
+        /**
+         * Exibe todas as músicas da playlist na tela
+         */
+        function displayPlaylist() {
+            const musicListElement = document.getElementById('musicList');
+            
+            // Limpa a lista atual
+            musicListElement.innerHTML = '';
+
+            // Verifica se a playlist está vazia
+            if (playlist.length === 0) {
+                musicListElement.innerHTML = '<li>Sua playlist está vazia</li>';
+                return;
+            }
+
+            // Para cada música na playlist, cria um elemento na lista
+            playlist.forEach(music => {
+                const li = document.createElement('li');
+                li.className = 'music-item';
+                
+                // Conteúdo do item da lista (nome e artista)
+                const musicInfo = document.createElement('span');
+                musicInfo.textContent = `${music.name} - ${music.artist}`;
+                
+                // Botão para remover a música
+                const removeButton = document.createElement('button');
+                removeButton.textContent = 'Remover';
+                removeButton.onclick = () => removeMusic(music.id);
+                
+                // Adiciona os elementos ao item da lista
+                li.appendChild(musicInfo);
+                li.appendChild(removeButton);
+                
+                // Adiciona o item à lista
+                musicListElement.appendChild(li);
+            });
+        }
+    </script>
+</body>
+</html>
